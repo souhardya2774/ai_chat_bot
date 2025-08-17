@@ -1,0 +1,5 @@
+{
+  "name": "Gemini AI Chat with Hasura",
+  "description": "A sleek, real-time chat application powered by Google's Gemini AI. It features secure, email-based authentication and conversation history storage using Nhost and Hasura GraphQL, providing a seamless and intelligent conversational experience.",
+  "requestFramePermissions": []
+}
