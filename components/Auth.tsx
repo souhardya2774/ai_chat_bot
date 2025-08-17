@@ -1,27 +1,33 @@
 import React, { useState } from 'react';
-import { useSignInEmailPassword, useSignUpEmailPassword } from '@nhost/react';
+import { useSignInEmailPassword, useSignUpEmailPassword, useSendVerificationEmail } from '@nhost/react';
+import { nhost } from '@/services/nhost';
 
 export const Auth: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const { signInEmailPassword, isLoading: isSigningIn, isError: isSignInError, error: signInError } = useSignInEmailPassword();
+  const { signInEmailPassword, isLoading: isSigningIn, isError: isSignInError, error: signInError, needsEmailVerification } = useSignInEmailPassword();
   const { signUpEmailPassword, isLoading: isSigningUp, isError: isSignUpError, error: signUpError } = useSignUpEmailPassword();
+  const { sendEmail, isLoading: isVerifyEmail, isSent, isError: isVerification, error: verifyError } = useSendVerificationEmail();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSignUp) {
       await signUpEmailPassword(email, password);
+      await sendEmail(email);
     } else {
       console.log('Signing in with:', { email, password });
       await signInEmailPassword(email, password);
+      if (needsEmailVerification) {
+        await sendEmail(email);
+      }
     }
   };
 
-  const isLoading = isSigningIn || isSigningUp;
-  const isError = isSignInError || isSignUpError;
-  const error = signInError || signUpError;
+  const isLoading = isSigningIn || isSigningUp || isVerifyEmail;
+  const isError = isSignInError || isSignUpError || isVerification;
+  const error = signInError || signUpError || verifyError;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -85,6 +91,16 @@ export const Auth: React.FC = () => {
             {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </button>
         </div>
+        {needsEmailVerification && (
+          <div className="mt-4 text-sm text-center text-gray-400">
+            Please verify your email to complete the sign-in process.
+          </div>
+        )}
+        {isSent && (
+          <div className="mt-4 text-center text-green-400">
+            Verification email sent! Please check your inbox.
+          </div>
+        )}
       </div>
     </div>
   );
